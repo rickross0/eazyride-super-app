@@ -26,7 +26,7 @@ export default function ProfileScreen({ navigation }) {
     fetchProfile();
     (async () => {
       try {
-        const { data } = await client.get('/support/contacts');
+        const { data } = await client.get('/settings/support-contacts');
         setContacts({ phone: data.phone || '', whatsapp: data.whatsapp || '', email: data.email || '' });
       } catch {}
     })();
@@ -34,7 +34,7 @@ export default function ProfileScreen({ navigation }) {
 
   const showTerms = async () => {
     try {
-      const { data } = await client.get('/legal/terms');
+      const { data } = await client.get('/settings/legal/terms');
       setTcContent(data.content);
     } catch { setTcContent('Unable to load Terms & Conditions.'); }
     setShowTcModal(true);
@@ -76,7 +76,7 @@ export default function ProfileScreen({ navigation }) {
       const type = match ? `image/${match[1]}` : 'image/jpeg';
       const formData = new FormData();
       formData.append('avatar', { uri, name: filename || 'avatar.jpg', type });
-      const { data } = await client.post('/auth/avatar', formData, {
+      const { data } = await client.put('/users/me', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setAvatarUrl(data.avatarUrl);
@@ -92,7 +92,7 @@ export default function ProfileScreen({ navigation }) {
     const newValue = !canDeliver;
     setTogglingDelivery(true);
     try {
-      await client.put('/drivers/can-deliver', { canDeliver: newValue });
+      await client.put('/drivers/profile', { canDeliver: newValue });
       setCanDeliver(newValue);
     } catch (e) {
       Alert.alert('Error', e.response?.data?.error || 'Failed to update');

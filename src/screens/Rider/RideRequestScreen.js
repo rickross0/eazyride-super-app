@@ -41,7 +41,7 @@ export default function RideRequestScreen({ navigation }) {
         pickupLng: pickup.longitude,
         vehicleType,
       };
-      const { data } = await client.post('/rides/request', payload);
+      const { data } = await client.post('/rides', payload);
       navigation.navigate('RideTracking', { rideId: data.ride.id });
     } catch (e) {
       Alert.alert('Error', e.response?.data?.error || 'Failed to request ride');

@@ -25,7 +25,7 @@ export default function ProfileScreen({ navigation }) {
     fetchProfile();
     (async () => {
       try {
-        const { data } = await client.get('/support/contacts');
+        const { data } = await client.get('/settings/support-contacts');
         setContacts({ phone: data.phone || '', whatsapp: data.whatsapp || '', email: data.email || '' });
       } catch {}
     })();
