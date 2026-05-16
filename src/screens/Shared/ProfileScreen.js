@@ -1,7 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Image, Linking } from 'react-native';
-import { Modal } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import client from '../../api/client';
 import * as ImagePicker from 'expo-image-picker';
@@ -61,7 +60,7 @@ export default function ProfileScreen({ navigation }) {
         quality: 0.7,
       });
       if (!result.canceled && result.assets[0]) {
-        uploadAvatar(result.assets[0].uri);
+        await uploadAvatar(result.assets[0].uri);
       }
     } catch (e) {
       Alert.alert('Error', 'Failed to pick image');

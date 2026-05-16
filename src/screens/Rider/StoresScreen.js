@@ -17,6 +17,7 @@ export default function StoresScreen({ navigation }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       console.log('[Stores] Fetching stores...');
       try {
@@ -24,22 +25,21 @@ export default function StoresScreen({ navigation }) {
         console.log('[Stores] Response:', JSON.stringify(response.data).slice(0, 200));
         const items = response.data?.data || [];
         console.log('[Stores] Items count:', items.length);
-        setStores(items);
-        setFiltered(items);
+        if (mounted) { setStores(items); setFiltered(items); }
       } catch (e) {
         console.error('[Stores] Error:', e.message, e.response?.status, e.response?.data);
-        setError('Failed to load restaurants: ' + (e.response?.data?.message || e.message));
+        if (mounted) setError('Failed to load restaurants: ' + (e.response?.data?.message || e.message));
       } finally {
-        console.log('[Stores] Setting loading false');
-        setLoading(false);
+        // loading handled above
+        if (mounted) setLoading(false);
       }
     })();
     const timer = setTimeout(() => {
       console.log('[Stores] Safety timeout triggered');
-      setLoading(false);
-      if (!stores.length && !error) setError('Request timed out. Please check your connection.');
+      if (mounted) setLoading(false);
+      if (mounted && !stores.length && !error) setError('Request timed out. Please check your connection.');
     }, 20000);
-    return () => clearTimeout(timer);
+    return () => { mounted = false; clearTimeout(timer); };
   }, []);
 
   useEffect(() => {

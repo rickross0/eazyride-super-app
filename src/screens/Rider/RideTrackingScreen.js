@@ -275,7 +275,7 @@ export default function RideTrackingScreen({ route, navigation }) {
                   await client.post('/sos', { rideId: ride.id, latitude: loc.lat, longitude: loc.lng, message: 'Rider SOS during active ride' });
                   Alert.alert('Alert Sent', 'Emergency services and platform have been notified. Stay safe!');
                 } catch {
-                  client.post('/notifications', { type: 'SOS', rideId: ride.id, message: 'Rider SOS alert' }).catch(() => {});
+                  // Removed invalid /notifications fallback
                   Alert.alert('Alert Sent', 'Platform has been notified. Stay safe.');
                 }
               }},

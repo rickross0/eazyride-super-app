@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import client from '../../api/client';
 
 export default function CarDetailScreen({ route, navigation }) {
@@ -13,7 +13,7 @@ export default function CarDetailScreen({ route, navigation }) {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await client.get(`/car-rental/cars/${carId}`);
+        const { data } = await client.get(`/car-rental/${carId}`);
         setCar(data.car);
       } catch (e) { console.error('Fetch car error:', e); }
     })();

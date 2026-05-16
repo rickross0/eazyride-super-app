@@ -7,7 +7,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, RefreshControl, Alert } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import client from '../../api/client';
-import { colors, spacing, radius, typography } from '../../theme/designTokens';
 
 export default function LotteryScreen() {
   const { colors } = useTheme();
@@ -25,8 +24,8 @@ export default function LotteryScreen() {
     try {
       const { data } = await client.get('/lottery/active');
       setLottery(data.data || data);
-      const { data: ticketData } = await client.get('/lottery/my-tickets');
-      setTickets(ticketData.data || ticketData || []);
+      // No /lottery/my-tickets endpoint; leaving tickets empty
+      setTickets([]);
     } catch (e) {
       console.log('Lottery fetch error:', e?.response?.data || e.message);
     } finally {
@@ -35,13 +34,13 @@ export default function LotteryScreen() {
     }
   };
 
-  const handleRefresh = () => { setRefreshing(true); fetchLottery(); };
+  const handleRefresh = async () => { setRefreshing(true); await fetchLottery(); };
 
   const buyTickets = async () => {
     if (!lottery) return;
     setBuying(true);
     try {
-      const { data } = await client.post('/lottery/buy', { lotteryId: lottery.id, quantity });
+      const { data } = await client.post(`/lottery/${lottery.id}/ticket`, { quantity });
       Alert.alert('🎰 Tickets Purchased!', `You bought ${quantity} ticket${quantity > 1 ? 's' : ''}!`);
       fetchLottery();
     } catch (e) {

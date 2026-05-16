@@ -6,7 +6,6 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import client from '../../api/client';
-import { SOCKET_URL } from '../../config';
 
 const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
 
@@ -26,7 +25,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await client.get(`/food-orders`);
+        const { data } = await client.get('/drivers/orders');
         const found = (data.orders || []).find((o) => o.id === orderId);
         if (found) setOrder(found);
       } catch (e) {
@@ -70,7 +69,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
     try {
       const payload = {};
       if (useNfc) payload.nfcVerified = true;
-      const { data } = await client.put(`/food-orders/${orderId}/verify-arrival`, payload);
+      const { data } = await client.post(`/orders/${orderId}/verify-pickup`, payload);
       if (data.status === 'DRIVER_ARRIVED') {
         setArrived(true);
         setShowPin(true);
@@ -184,7 +183,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                       { text: 'No', style: 'cancel' },
                       { text: 'Yes, Confirmed', onPress: async () => {
                         try {
-                          await client.put(`/food-orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
+                          await client.put(`/orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
                           Alert.alert('Pickup Confirmed', 'Head to the customer now!', [
                             { text: 'Go to Dropoff', onPress: () => navigation.replace('DeliveryDropoff', { orderId }) },
                           ]);

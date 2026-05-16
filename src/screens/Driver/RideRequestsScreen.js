@@ -35,8 +35,8 @@ export default function RideRequestsScreen({ navigation }) {
 
   const fetchRides = async () => {
     try {
-      const { data } = await client.get('/rides?limit=50');
-      setRides(data.rides || []);
+      const { data } = await client.get('/drivers/orders');
+      setRides(data.orders || data || []);
     } catch (e) {
       console.error('Fetch rides error:', e);
     }
@@ -44,8 +44,8 @@ export default function RideRequestsScreen({ navigation }) {
 
   const fetchDeliveries = async () => {
     try {
-      const { data } = await client.get('/food-orders/driver/deliveries');
-      setDeliveries(data.orders || []);
+      const { data } = await client.get('/drivers/orders');
+      setDeliveries(data.orders || data || []);
     } catch (e) {
       console.error('Fetch deliveries error:', e);
     }

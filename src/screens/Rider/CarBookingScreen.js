@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import client from '../../api/client';
 
 export default function CarBookingScreen({ route, navigation }) {
@@ -23,8 +23,7 @@ export default function CarBookingScreen({ route, navigation }) {
     if (!pickupLocation.trim()) return Alert.alert('Missing Info', 'Enter a pickup location');
     setLoading(true);
     try {
-      await client.post('/car-rental/bookings', {
-        carId,
+      await client.post(`/car-rental/${carId}/reserve`, {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         pickupLocation,

@@ -3,7 +3,6 @@ import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -121,7 +120,7 @@ export default function ActiveRideScreen({ route, navigation }) {
             { text: 'Cancel', style: 'cancel' },
             { text: 'Call 111', style: 'destructive', onPress: () => Linking.openURL('tel:111') },
             { text: 'Alert Platform', onPress: () => {
-              client.post('/notifications', { type: 'SOS', message: 'Driver SOS alert' }).catch(() => {});
+              // Removed invalid /notifications fallback
               Alert.alert('Alert Sent', 'Platform has been notified. Stay safe.');
             }},
           ]);

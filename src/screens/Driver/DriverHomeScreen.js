@@ -14,18 +14,18 @@ export default function DriverHomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const cfg = ROLE_CONFIG.DRIVER;
 
-  const fetchRides = async () => {
+  const fetchProfile = async () => {
     try {
       const { data } = await api.get('/drivers/profile');
       setRides(data?.rides || data || []);
     } catch {}
   };
 
-  useEffect(() => { fetchRides(); }, []);
+  useEffect(() => { fetchProfile(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRides();
+    await fetchProfile();
     setRefreshing(false);
   };
 

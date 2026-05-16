@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { ROLE_LABELS, ROLE_COLORS } from '../../config';
+import client from '../../api/client';
 import Toast from 'react-native-toast-message';
 
 export default function RegisterScreen({ navigation, route }) {

@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useCart } from '../../contexts/CartContext';
 import client from '../../api/client';
 
@@ -14,7 +14,7 @@ export default function StoreDetailScreen({ route, navigation }) {
 
   useEffect(() => {
     (async () => {
-      try { const { data } = await client.get(`/stores/${store.id}`); setMenuItems(data.data?.menuItems || []); } catch {}
+      try { const { data } = await client.get(`/stores/${store.id}/menu`); setMenuItems(data.data || []); } catch {}
     })();
   }, [store.id]);
 

@@ -8,18 +8,18 @@ export default function DriverOrdersScreen({ navigation }) {
   const [rides, setRides] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchRides = async () => {
+  const fetchProfile = async () => {
     try {
       const { data } = await api.get('/drivers/profile');
       setRides(data?.rides || data || []);
     } catch {}
   };
 
-  useEffect(() => { fetchRides(); }, []);
+  useEffect(() => { fetchProfile(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchRides();
+    await fetchProfile();
     setRefreshing(false);
   };
 

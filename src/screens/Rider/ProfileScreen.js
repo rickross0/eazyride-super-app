@@ -1,7 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ScrollView, Image, Linking } from 'react-native';
-import { Modal } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import client from '../../api/client';
 import * as ImagePicker from 'expo-image-picker';
@@ -52,7 +51,7 @@ export default function ProfileScreen() {
         quality: 0.7,
       });
       if (!result.canceled && result.assets[0]) {
-        uploadAvatar(result.assets[0].uri);
+        await uploadAvatar(result.assets[0].uri);
       }
     } catch (e) {
       Alert.alert('Error', 'Failed to pick image');
@@ -79,7 +78,7 @@ export default function ProfileScreen() {
 
   const fetchAddresses = async () => {
     try {
-      const { data } = await client.get('/addresses');
+      const { data } = await client.get('/users/addresses');
       setSavedAddresses(data.addresses || []);
     } catch {}
   };
@@ -88,33 +87,14 @@ export default function ProfileScreen() {
     if (!newLabel.trim() || !newLat || !newLng) {
       return Alert.alert('Error', 'Label and coordinates are required');
     }
-    setSaving(true);
-    try {
-      await client.post('/addresses', {
-        label: newLabel.trim(),
-        address: newAddress.trim() || null,
-        latitude: parseFloat(newLat),
-        longitude: parseFloat(newLng),
-      });
-      setNewLabel(''); setNewAddress(''); setNewLat(''); setNewLng('');
-      setShowAddAddress(false);
-      fetchAddresses();
-      Alert.alert('Saved', 'Address added');
-    } catch (e) {
-      Alert.alert('Error', e.response?.data?.error || 'Failed to save address');
-    } finally {
-      setSaving(false);
-    }
+    Alert.alert('Coming Soon', 'Address saving is not available yet.');
   };
 
   const deleteAddress = async (id) => {
     Alert.alert('Delete Address', 'Remove this saved address?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try {
-          await client.delete(`/addresses/${id}`);
-          fetchAddresses();
-        } catch {}
+      { text: 'Delete', style: 'destructive', onPress: () => {
+        Alert.alert('Coming Soon', 'Address deletion is not available yet.');
       }},
     ]);
   };

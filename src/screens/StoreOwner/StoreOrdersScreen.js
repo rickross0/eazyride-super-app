@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import api from '../../api/client';
 
 export default function StoreOrdersScreen() {
@@ -8,7 +8,7 @@ export default function StoreOrdersScreen() {
 
   const fetchOrders = async () => {
     try {
-      const { data } = await api.get('/stores/my-orders');
+      const { data } = await api.get('/orders/store');
       setOrders(data?.orders || data || []);
     } catch {}
   };

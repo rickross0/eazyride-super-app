@@ -11,7 +11,7 @@ export default function RideHistoryScreen() {
 
   useEffect(() => {
     (async () => {
-      try { const { data } = await client.get('/rides'); setRides(data.data || []); } catch {}
+      try { const { data } = await client.get('/riders/rides'); setRides(data.data || []); } catch {}
     })();
   }, []);
 

@@ -12,28 +12,28 @@ export default function CarRentalScreen({ navigation }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       console.log('[CarRental] Fetching cars...');
       try {
-        const response = await client.get('/car-rental/cars');
+        const response = await client.get('/car-rental');
         console.log('[CarRental] Response:', JSON.stringify(response.data).slice(0, 200));
         const items = response.data?.data || [];
         console.log('[CarRental] Items count:', items.length);
-        setCars(items);
+        if (mounted) setCars(items);
       } catch (e) {
         console.error('[CarRental] Error:', e.message, e.response?.status, e.response?.data);
-        setError('Failed to load available cars: ' + (e.response?.data?.message || e.message));
+        if (mounted) setError('Failed to load available cars: ' + (e.response?.data?.message || e.message));
       } finally {
-        console.log('[CarRental] Setting loading false');
-        setLoading(false);
+        if (mounted) { console.log('[CarRental] Setting loading false'); setLoading(false); }
       }
     })();
     const timer = setTimeout(() => {
       console.log('[CarRental] Safety timeout triggered');
-      setLoading(false);
-      if (!cars.length && !error) setError('Request timed out. Please check your connection.');
+      if (mounted) setLoading(false);
+      if (mounted && !cars.length && !error) setError('Request timed out. Please check your connection.');
     }, 20000);
-    return () => clearTimeout(timer);
+    return () => { mounted = false; clearTimeout(timer); };
   }, []);
 
   if (loading) {
@@ -68,7 +68,7 @@ export default function CarRentalScreen({ navigation }) {
         </View>
       ) : (
         cars.map((car) => (
-          <TouchableOpacity key={car.id} style={styles.card} onPress={() => navigation.navigate('CarRentalBooking', { car })}>
+          <TouchableOpacity key={car.id} style={styles.card} onPress={() => navigation.navigate('CarBooking', { carId: car.id, pricePerDay: car.pricePerDay, depositAmount: car.depositAmount || 0 })}>
             <Text style={styles.carName}>{car.brand} {car.model} ({car.year})</Text>
             <Text style={styles.carDetail}>{car.seats} seats • {car.transmission} • {car.fuelType}</Text>
             <Text style={styles.carPrice}>${(car.pricePerDay || 0).toFixed(2)}/day • Deposit: ${(car.depositAmount || 0).toFixed(2)}</Text>

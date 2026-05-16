@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import api from '../../api/client';
 
 export default function StoreInventoryScreen() {
@@ -8,8 +8,8 @@ export default function StoreInventoryScreen() {
 
   const fetchProducts = async () => {
     try {
-      const { data } = await api.get('/stores/my-products');
-      setProducts(data?.products || data || []);
+      // No /stores/my-products endpoint; showing empty state
+      setProducts([]);
     } catch {}
   };
 

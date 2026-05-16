@@ -23,7 +23,7 @@ export default function DeliveryDropoffScreen({ route, navigation }) {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await client.get(`/food-orders`);
+        const { data } = await client.get('/drivers/orders');
         const found = (data.orders || []).find((o) => o.id === orderId);
         if (found) setOrder(found);
       } catch (e) {
@@ -65,7 +65,7 @@ export default function DeliveryDropoffScreen({ route, navigation }) {
   const completeDelivery = async () => {
     setCompleting(true);
     try {
-      await client.put(`/food-orders/${orderId}/status`, { status: 'DELIVERED' });
+      await client.put(`/orders/${orderId}/status`, { status: 'DELIVERED' });
       Alert.alert('Delivery Complete!', 'Order has been delivered successfully.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);

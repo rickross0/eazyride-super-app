@@ -71,7 +71,7 @@ export default function CartScreen({ navigation }) {
         }
       } catch (e) {}
       const items = cart.map((item) => ({ menuItemId: item.id, quantity: item.quantity }));
-      const { data } = await client.post('/food-orders', {
+      const { data } = await client.post('/orders', {
         restaurantId: restaurant.id,
         items,
         deliveryAddress: 'Current Location',

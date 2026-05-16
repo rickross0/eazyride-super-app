@@ -34,11 +34,11 @@ export default function WalletScreen() {
     if (!amount || amount <= 0) return Alert.alert('Error', 'Enter a valid amount');
     if (!phone) return Alert.alert('Error', 'Enter your EVC/Zaad phone number (e.g. +25261234567)');
     try {
-      await client.post('/payments/initialize', { phone, amount });
+      await client.post('/wallet/deposit', { phone, amount });
       Alert.alert('Deposit Initiated', 'Complete payment on your phone');
       setDepositAmount('');
       setDepositPhone('');
-      loadData();
+      await loadData();
     } catch (e) { Alert.alert('Error', e.response?.data?.error || 'Deposit failed'); }
   };
 
@@ -50,7 +50,7 @@ export default function WalletScreen() {
     if (withdrawMethod === 'EVC' && !withdrawPhone.trim()) return Alert.alert('Error', 'Enter EVC phone number for withdrawal');
     setWithdrawing(true);
     try {
-      const { data } = await client.post('/wallet/payout', {
+      const { data } = await client.post('/wallet/withdraw', {
         amount,
         method: withdrawMethod,
         accountInfo: withdrawMethod === 'EVC' ? { phone: withdrawPhone.trim() } : null,
@@ -59,7 +59,7 @@ export default function WalletScreen() {
       setWithdrawAmount('');
       setWithdrawPhone('');
       setShowWithdraw(false);
-      loadData();
+      await loadData();
     } catch (e) {
       Alert.alert('Error', e.response?.data?.error || 'Withdrawal failed');
     } finally {

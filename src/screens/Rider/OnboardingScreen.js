@@ -3,8 +3,8 @@
 // ============================================================
 
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated } from 'react-native';
-import { colors, spacing, radius, typography } from '../../theme/designTokens';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { colors, radius, typography } from '../../theme/designTokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
