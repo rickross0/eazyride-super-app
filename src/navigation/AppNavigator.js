@@ -210,6 +210,8 @@ function ProviderStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProviderTabs" component={ProviderTabs} />
+      <Stack.Screen name="Services" component={ProviderServicesScreen} />
+      <Stack.Screen name="Requests" component={ProviderOrdersScreen} />
     </Stack.Navigator>
   );
 }
