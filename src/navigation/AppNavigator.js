@@ -65,7 +65,7 @@ function PlaceholderScreen() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
       <Feather name="tool" size={48} color={colors.textSecondary} />
-      <Text style={{ fontSize: 18, color: colors.textSecondary, marginTop: 16, fontWeight: '600' }}>Coming Soon</Text>
+      <Text style={{ fontSize: 18, color: colors.textSecondary, marginTop: 16, fontWeight: '600' }}>Feature Under Development</Text>
     </View>
   );
 }

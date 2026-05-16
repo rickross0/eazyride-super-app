@@ -26,7 +26,7 @@ export default function DriverOrdersScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => Alert.alert('Coming Soon', 'Ride details will be available soon.')}
+      onPress={() => navigation.navigate('ActiveRide', { rideId: item._id, ride: item })}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.route}>{item.pickup} → {item.destination}</Text>

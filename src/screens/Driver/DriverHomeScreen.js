@@ -76,7 +76,7 @@ export default function DriverHomeScreen({ navigation }) {
             <TouchableOpacity
               key={ride._id}
               style={styles.rideCard}
-              onPress={() => Alert.alert('Coming Soon', 'Ride details will be available soon.')}
+              onPress={() => navigation.navigate('ActiveRide', { rideId: ride._id, ride })}
             >
               <Text style={styles.rideRoute}>{ride.pickup} → {ride.destination}</Text>
               <Text style={styles.rideFare}>${ride.fare?.toFixed(2)}</Text>
