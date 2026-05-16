@@ -3,8 +3,8 @@
  * Firebase Remote Config is disabled in this build to avoid native dependency issues.
  * All URLs fall back to environment variables or hardcoded production endpoints.
  */
-const FALLBACK_API_URL = 'https://eazyride-haye-backend.onrender.com/api';
-const FALLBACK_SOCKET_URL = 'https://eazyride-haye-backend.onrender.com';
+const FALLBACK_API_URL = 'https://eazyride-api.onrender.com/api';
+const FALLBACK_SOCKET_URL = 'https://eazyride-api.onrender.com';
 
 let _apiBase = null;
 let _socketUrl = null;

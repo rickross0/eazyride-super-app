@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
-const SOCKET_URL = 'https://eazyride-haye-backend.onrender.com';
+const SOCKET_URL = 'https://eazyride-api.onrender.com';
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {

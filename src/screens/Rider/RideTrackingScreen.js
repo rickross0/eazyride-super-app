@@ -164,7 +164,7 @@ export default function RideTrackingScreen({ route, navigation }) {
 
   const shareRide = async () => {
     try {
-      await Share.share({ message: `Track my EazyRide: https://eazyride-haye-backend.onrender.com/rides/${rideId}/track` });
+      await Share.share({ message: `Track my EazyRide: https://eazyride-api.onrender.com/rides/${rideId}/track` });
     } catch {}
   };
 
