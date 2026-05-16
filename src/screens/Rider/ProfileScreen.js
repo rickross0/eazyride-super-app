@@ -87,14 +87,33 @@ export default function ProfileScreen() {
     if (!newLabel.trim() || !newLat || !newLng) {
       return Alert.alert('Error', 'Label and coordinates are required');
     }
-    Alert.alert('Coming Soon', 'Address saving is not available yet.');
+    setSaving(true);
+    try {
+      await client.post('/users/addresses', {
+        label: newLabel.trim(),
+        address: newAddress.trim() || null,
+        latitude: parseFloat(newLat),
+        longitude: parseFloat(newLng),
+      });
+      setNewLabel(''); setNewAddress(''); setNewLat(''); setNewLng('');
+      setShowAddAddress(false);
+      fetchAddresses();
+      Alert.alert('Saved', 'Address added');
+    } catch (e) {
+      Alert.alert('Error', e.response?.data?.error || 'Failed to save address');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const deleteAddress = async (id) => {
     Alert.alert('Delete Address', 'Remove this saved address?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => {
-        Alert.alert('Coming Soon', 'Address deletion is not available yet.');
+      { text: 'Delete', style: 'destructive', onPress: async () => {
+        try {
+          await client.delete(`/users/addresses/${id}`);
+          fetchAddresses();
+        } catch {}
       }},
     ]);
   };
