@@ -6,6 +6,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
+import client from '../../api/client';
 
 const SERVICE_TYPES = ['Plumbing', 'Electrical', 'Cleaning', 'Repair', 'Moving', 'Painting', 'Other'];
 
@@ -34,7 +35,21 @@ export default function ServiceRequestScreen() {
       return;
     }
 
-    Toast.show({ type: 'info', text1: 'Coming Soon', text2: 'Service requests will be available in a future update.' });
+    try {
+      const { data } = await client.post('/providers/leads', {
+        serviceType,
+        description,
+        location,
+        phone,
+      });
+      Toast.show({ type: 'success', text1: 'Request Submitted', text2: data?.message || 'Your service request has been sent!' });
+      setServiceType('');
+      setDescription('');
+      setLocation('');
+      setPhone(user?.phone || '');
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Error', text2: e?.response?.data?.error || 'Failed to submit request.' });
+    }
   };
 
   return (

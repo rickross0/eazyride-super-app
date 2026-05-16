@@ -56,6 +56,7 @@ import ProviderOrdersScreen from '../screens/Provider/ProviderOrdersScreen';
 
 // Shared
 import ChatScreen from '../screens/Shared/ChatScreen';
+import SharedProfileScreen from '../screens/Shared/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -174,7 +175,7 @@ function StoreTabs() {
       <Tab.Screen name="Home" component={StoreOwnerHomeScreen} />
       <Tab.Screen name="Inventory" component={StoreInventoryScreen} />
       <Tab.Screen name="Orders" component={StoreOrdersScreen} />
-      <Tab.Screen name="Profile" component={PlaceholderScreen} />
+      <Tab.Screen name="Profile" component={SharedProfileScreen} />
     </Tab.Navigator>
   );
 }
@@ -201,7 +202,7 @@ function ProviderTabs() {
       },
     })}>
       <Tab.Screen name="Home" component={ProviderHomeScreen} />
-      <Tab.Screen name="Profile" component={PlaceholderScreen} />
+      <Tab.Screen name="Profile" component={SharedProfileScreen} />
     </Tab.Navigator>
   );
 }

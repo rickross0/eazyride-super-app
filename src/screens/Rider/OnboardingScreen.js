@@ -1,10 +1,11 @@
 // ============================================================
-// EazyRide + Haye! — Onboarding Screen v2.2.0
+// EazyRide + Haye! — Onboarding Screen v2.3.0 (Theme-aware)
 // ============================================================
 
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { colors, radius, typography } from '../../theme/designTokens';
+import { useTheme } from '../../contexts/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -13,10 +14,12 @@ const slides = [
   { emoji: '🍔', title: 'Order Food', subtitle: 'From your favorite restaurants', description: 'Browse menus, order with delivery or pickup, and track your meal in real time.' },
   { emoji: '🚙', title: 'Rent a Car', subtitle: 'Browse & book vehicles with deposit', description: 'Choose from a range of vehicles with secure deposit and escrow protection.' },
   { emoji: '🔧', title: 'Book Services', subtitle: 'Gas, water, carpentry, plumbing & more', description: 'Professional service providers at your doorstep. Schedule, track, and pay securely.' },
-  { emoji: '🎰', title: 'Win Prizes', subtitle: 'Daily lottery with every purchase', description: 'Earn tickets with rides and orders. Daily draws with real cash prizes.' },
+  { emoji: '🎁', title: 'Win Prizes', subtitle: 'Driver giveaways & promotions', description: 'Exclusive free promotional giveaways for our drivers. Rewards for the road.' },
 ];
 
 export default function OnboardingScreen({ navigation }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollRef = useRef(null);
 
@@ -34,47 +37,71 @@ export default function OnboardingScreen({ navigation }) {
     }
   };
 
-  const handleSkip = () => { navigation.replace('Login'); };
-
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-      <ScrollView ref={scrollRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onScroll={handleScroll} scrollEventThrottle={16}>
-        {slides.map((slide, i) => (
-          <View key={i} style={styles.slide}>
-            <Text style={styles.slideEmoji}>{slide.emoji}</Text>
-            <Text style={styles.slideTitle}>{slide.title}</Text>
-            <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
-            <Text style={styles.slideDescription}>{slide.description}</Text>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {slides.map((slide, index) => (
+          <View key={index} style={styles.slide}>
+            <Text style={styles.emoji}>{slide.emoji}</Text>
+            <Text style={styles.title}>{slide.title}</Text>
+            <Text style={styles.subtitle}>{slide.subtitle}</Text>
+            <Text style={styles.description}>{slide.description}</Text>
           </View>
         ))}
       </ScrollView>
-      <View style={styles.dots}>
-        {slides.map((_, i) => (
-          <View key={i} style={[styles.dot, i === currentSlide && styles.dotActive]} />
-        ))}
+
+      <View style={styles.footer}>
+        <View style={styles.dots}>
+          {slides.map((_, i) => (
+            <View key={i} style={[styles.dot, i === currentSlide && styles.activeDot]} />
+          ))}
+        </View>
+        <TouchableOpacity onPress={handleNext}>
+          <LinearGradient
+            colors={[colors.primary || '#FFD700', colors.gold_dark || '#b8860b']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.nextButton}
+          >
+            <Text style={styles.nextButtonText}>
+              {currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>{currentSlide === slides.length - 1 ? 'Get Started' : 'Next'}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  skipButton: { position: 'absolute', top: 60, right: 20, zIndex: 10, padding: 8 },
-  skipText: { ...typography.body2, color: colors.gray[500], fontWeight: '600' },
-  slide: { width: SCREEN_WIDTH, paddingHorizontal: 32, alignItems: 'center', justifyContent: 'center', paddingTop: 100 },
-  slideEmoji: { fontSize: 72, marginBottom: 24 },
-  slideTitle: { ...typography.h2, color: colors.gray[900], textAlign: 'center', marginBottom: 8 },
-  slideSubtitle: { ...typography.h5, color: colors.primary[400], textAlign: 'center', marginBottom: 16 },
-  slideDescription: { ...typography.body1, color: colors.gray[500], textAlign: 'center', lineHeight: 24 },
-  dots: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 24 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.gray[300], marginHorizontal: 4 },
-  dotActive: { backgroundColor: colors.primary[400], width: 24, borderRadius: 4 },
-  nextButton: { marginHorizontal: 32, marginBottom: 48, backgroundColor: colors.primary[400], borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center' },
-  nextButtonText: { ...typography.button, color: '#FFFFFF' },
+const createStyles = (C) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.background },
+  slide: {
+    width: SCREEN_WIDTH,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emoji: { fontSize: 64, marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: '800', color: C.text, textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 18, fontWeight: '600', color: C.primary, textAlign: 'center', marginBottom: 12 },
+  description: { fontSize: 15, color: C.textSecondary, textAlign: 'center', lineHeight: 22 },
+  footer: { paddingHorizontal: 32, paddingBottom: 40, alignItems: 'center' },
+  dots: { flexDirection: 'row', marginBottom: 20 },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.border, marginHorizontal: 4 },
+  activeDot: { backgroundColor: C.primary, width: 20 },
+  nextButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  nextButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
 });

@@ -1,71 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../api/client';
 
 export default function StoreInventoryScreen() {
-  const [products, setProducts] = useState([]);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProducts = async () => {
+  const fetchItems = async () => {
     try {
-      // No /stores/my-products endpoint; showing empty state
-      setProducts([]);
+      const { data } = await api.get('/products/my');
+      setItems(data?.products || data?.data || []);
     } catch {}
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchItems(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProducts();
+    await fetchItems();
     setRefreshing(false);
   };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={[styles.badge, item.available ? styles.available : styles.out]}>
-          {item.available ? 'In Stock' : 'Out'}
-        </Text>
-      </View>
-      <Text style={styles.price}>${item.price?.toFixed(2)}</Text>
-      <Text style={styles.qty}>Qty: {item.quantity || 0}</Text>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Inventory</Text>
       <FlatList
-        data={products}
-        keyExtractor={item => item._id || item.id}
-        renderItem={renderItem}
+        data={items}
+        keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.price}>${item.price?.toFixed(2) || '0.00'}</Text>
+            <Text style={styles.stock}>Stock: {item.stock || 0}</Text>
+          </View>
+        )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>📦</Text>
             <Text style={styles.emptyText}>No products yet</Text>
           </View>
         }
-        contentContainerStyle={products.length === 0 ? { flex: 1 } : {}}
+        contentContainerStyle={items.length === 0 ? { flex: 1 } : { paddingBottom: 20 }}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 24, fontWeight: 'bold', padding: 16, paddingTop: 50, color: '#333' },
-  card: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, elevation: 2 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: 15, fontWeight: '600', color: '#333', flex: 1 },
-  badge: { fontSize: 12, fontWeight: '600', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  available: { backgroundColor: '#E8F5E9', color: '#4CAF50' },
-  out: { backgroundColor: '#FFEBEE', color: '#F44336' },
-  price: { fontSize: 14, fontWeight: 'bold', color: '#FF9800', marginTop: 4 },
-  qty: { fontSize: 12, color: '#888', marginTop: 2 },
+const createStyles = (C) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.background },
+  title: { fontSize: 24, fontWeight: 'bold', padding: 16, paddingTop: 50, color: C.text },
+  card: { backgroundColor: C.card, marginHorizontal: 16, marginBottom: 8, borderRadius: 12, padding: 16, elevation: 2 },
+  name: { fontSize: 16, fontWeight: '700', color: C.text },
+  price: { fontSize: 14, color: C.primary, fontWeight: '600', marginTop: 4 },
+  stock: { fontSize: 13, color: C.textSecondary, marginTop: 2 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyIcon: { fontSize: 48, marginBottom: 8 },
-  emptyText: { fontSize: 16, color: '#888' },
+  emptyText: { fontSize: 16, color: C.textSecondary },
 });

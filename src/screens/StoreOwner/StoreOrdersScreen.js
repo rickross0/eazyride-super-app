@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import api from '../../api/client';
 
 export default function StoreOrdersScreen() {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [orders, setOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [pins, setPins] = useState({});
@@ -49,6 +52,18 @@ export default function StoreOrdersScreen() {
     }
   };
 
+  const statusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'delivered':
+      case 'pickup_confirmed': return colors.success || '#4CAF50';
+      case 'cancelled': return colors.danger || '#F44336';
+      case 'pending': return colors.warning || '#FF9800';
+      case 'driver_arrived': return colors.primary || '#FFD700';
+      case 'driver_assigned': return '#2196F3';
+      default: return colors.textSecondary || '#888';
+    }
+  };
+
   const renderItem = ({ item }) => {
     const status = item.status || 'PENDING';
     const showPinInput = status === 'DRIVER_ARRIVED';
@@ -58,7 +73,7 @@ export default function StoreOrdersScreen() {
       <View style={styles.card}>
         <View style={styles.row}>
           <Text style={styles.orderId}>Order #{item.id?.slice(-6) || item.id}</Text>
-          <Text style={[styles.status, { color: statusColor(status) }]}>{status.replace(/_/g, ' ')}</Text>
+          <Text style={[styles.status, { color: statusColor(status) }]} >{status.replace(/_/g, ' ')}</Text>
         </View>
         <Text style={styles.items}>{item.items?.length || 0} items · ${item.total?.toFixed(2) || item.totalAmount?.toFixed(2) || '0.00'}</Text>
         <Text style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</Text>
@@ -69,7 +84,7 @@ export default function StoreOrdersScreen() {
             <TextInput
               style={styles.pinInput}
               placeholder="Enter 4-digit PIN"
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.textSecondary || '#888'}
               keyboardType="number-pad"
               maxLength={4}
               value={pins[item.id] || ''}
@@ -89,18 +104,6 @@ export default function StoreOrdersScreen() {
         )}
       </View>
     );
-  };
-
-  const statusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'delivered':
-      case 'pickup_confirmed': return '#4CAF50';
-      case 'cancelled': return '#F44336';
-      case 'pending': return '#FF9800';
-      case 'driver_arrived': return '#FFD700';
-      case 'driver_assigned': return '#2196F3';
-      default: return '#888';
-    }
   };
 
   return (
@@ -123,32 +126,32 @@ export default function StoreOrdersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 24, fontWeight: 'bold', padding: 16, paddingTop: 50, color: '#333' },
-  card: { backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 12, borderRadius: 12, padding: 16, elevation: 2 },
+const createStyles = (C) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.background },
+  title: { fontSize: 24, fontWeight: 'bold', padding: 16, paddingTop: 50, color: C.text },
+  card: { backgroundColor: C.card, marginHorizontal: 16, marginBottom: 12, borderRadius: 12, padding: 16, elevation: 2 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  orderId: { fontSize: 15, fontWeight: '600', color: '#333' },
+  orderId: { fontSize: 15, fontWeight: '600', color: C.text },
   status: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
-  items: { fontSize: 14, color: '#555', marginTop: 4 },
-  date: { fontSize: 12, color: '#888', marginTop: 2 },
-  pinSection: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#eee' },
-  pinLabel: { fontSize: 13, color: '#555', marginBottom: 8, fontWeight: '600' },
+  items: { fontSize: 14, color: C.textSecondary, marginTop: 4 },
+  date: { fontSize: 12, color: C.textSecondary, marginTop: 2 },
+  pinSection: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border },
+  pinLabel: { fontSize: 13, color: C.textSecondary, marginBottom: 8, fontWeight: '600' },
   pinInput: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: C.background,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: C.text,
     letterSpacing: 4,
     textAlign: 'center',
     marginBottom: 10,
   },
-  verifyBtn: { backgroundColor: '#FFD700', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  verifyBtn: { backgroundColor: C.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   verifyBtnText: { color: '#000', fontWeight: '800', fontSize: 15 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyIcon: { fontSize: 48, marginBottom: 8 },
-  emptyText: { fontSize: 16, color: '#888' },
+  emptyText: { fontSize: 16, color: C.textSecondary },
 });
