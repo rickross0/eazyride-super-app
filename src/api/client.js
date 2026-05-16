@@ -10,7 +10,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE = 'https://eazyride-haye-backend.onrender.com/api';
+const API_BASE = 'https://eazyride-api.onrender.com/api';
 
 const client = axios.create({ baseURL: API_BASE, timeout: 15000 });
 

@@ -34,5 +34,5 @@ export const ROLE_CONFIG = {
 };
 
 // Socket & routing URLs (from .env or defaults)
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'https://eazyride-haye-backend.onrender.com';
+export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || 'https://eazyride-api.onrender.com';
 export const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
