@@ -6,6 +6,7 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import client from '../../api/client';
+import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 
 const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving';
 
@@ -20,7 +21,13 @@ export default function DeliveryPickupScreen({ route, navigation }) {
   const [arrived, setArrived] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
+  const [nfcScanning, setNfcScanning] = useState(false);
   const mapRef = useRef(null);
+
+  useEffect(() => {
+    NfcManager.start().catch(() => {});
+    return () => { NfcManager.cancelTechnologyRequest().catch(() => {}); };
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -64,31 +71,66 @@ export default function DeliveryPickupScreen({ route, navigation }) {
     }
   }, [order, driverLocation]);
 
-  const verifyArrival = async (useNfc = false) => {
+  const verifyArrival = async () => {
     setVerifying(true);
     try {
-      const payload = {};
-      if (useNfc) payload.nfcVerified = true;
-      const { data } = await client.post(`/orders/${orderId}/verify-pickup`, payload);
+      const { data } = await client.put(`/food-orders/${orderId}/verify-arrival`, {});
       if (data.status === 'DRIVER_ARRIVED') {
         setArrived(true);
         setShowPin(true);
-        Alert.alert('Arrival Verified', 'You are at the restaurant. Show your pickup PIN or QR code to the store owner.');
+        Alert.alert('Arrival Verified', 'You are at the restaurant. Show your pickup PIN or tap NFC to confirm.');
       } else {
-        // GPS check failed — offer NFC as override
-        Alert.alert(
-          'Not Close Enough',
-          `GPS says you are ${data.distanceMeters}m away. If you are at the restaurant, use NFC to confirm.`,
-          [
-            { text: 'Get Closer', style: 'cancel' },
-            { text: 'Verify with NFC', onPress: () => verifyArrival(true) },
-          ]
-        );
+        Alert.alert('Not Close Enough', `GPS says you are ${data.distanceMeters}m away. Move closer or use NFC.`);
       }
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.error || 'Failed to verify arrival');
+      const msg = e.response?.data?.error || 'Failed to verify arrival';
+      if (msg.includes('distance') || msg.includes('close') || msg.includes('Not Close')) {
+        Alert.alert(
+          'Not Close Enough',
+          'You are too far from the restaurant. Use NFC to verify pickup.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Verify with NFC', onPress: () => verifyNfcPickup() },
+          ]
+        );
+      } else {
+        Alert.alert('Error', msg);
+      }
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const verifyNfcPickup = async () => {
+    setNfcScanning(true);
+    try {
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      const tag = await NfcManager.getTag();
+      if (!tag) {
+        Alert.alert('NFC Error', 'No NFC tag detected. Try again.');
+        return;
+      }
+      const tagId = tag.id;
+      console.log('[NFC] Tag detected:', tagId);
+
+      const { data } = await client.put(`/food-orders/${orderId}/verify-arrival`, {
+        nfcVerified: true,
+        nfcTagId: tagId,
+      });
+
+      if (data.status === 'DRIVER_ARRIVED') {
+        setArrived(true);
+        setShowPin(true);
+        Alert.alert('NFC Pickup Confirmed', 'Restaurant verified via NFC tap.');
+      } else {
+        Alert.alert('Verification Failed', data.error || 'Could not verify NFC pickup.');
+      }
+    } catch (e) {
+      console.error('[NFC] Error:', e);
+      Alert.alert('NFC Error', e.message || 'Failed to read NFC tag.');
+    } finally {
+      NfcManager.cancelTechnologyRequest().catch(() => {});
+      setNfcScanning(false);
     }
   };
 
@@ -137,12 +179,18 @@ export default function DeliveryPickupScreen({ route, navigation }) {
           )}
 
           {!arrived && (
-            <TouchableOpacity style={styles.btn} onPress={() => verifyArrival(false)} disabled={verifying}>
-              {verifying ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.btnText}>📍 Verify I'm at Restaurant</Text>}
-            </TouchableOpacity>
+            <View style={{ marginTop: 8 }}>
+              <TouchableOpacity style={styles.btn} onPress={verifyArrival} disabled={verifying}>
+                <Text style={styles.btnText}>{verifying ? 'Verifying GPS...' : '📍 Verify Arrival (GPS)'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700', marginTop: 10 }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
+                <Text style={[styles.btnText, { color: '#000' }]>{nfcScanning ? 'Hold phone near NFC tag...' : '📱 Verify Pickup (NFC)'}</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
-          {arrived && showPin && order.pickupPin && (
+          {showPin && (
             <View style={styles.verificationSection}>
               <Text style={styles.verifyTitle}>🔐 Pickup Verification</Text>
               <Text style={styles.verifySubtitle}>Show one of these to the store owner:</Text>
@@ -159,7 +207,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                 <View style={styles.qrBox}>
                   <Text style={styles.qrLabel}>QR Code</Text>
                   <Text style={styles.qrHint}>Let the store owner scan this with their app</Text>
-                  {/* QR rendered as a styled box with the data - actual QR component requires react-native-svg */}
                   <View style={styles.qrPlaceholder}>
                     <Text style={styles.qrData}>{qrData}</Text>
                   </View>
@@ -167,15 +214,15 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                 </View>
               ) : null}
 
-              {/* Method 3: NFC note */}
-              <View style={styles.nfcNote}>
-                <Text style={styles.nfcNoteText}>📱 NFC: Hold your phone near the store's device to transfer automatically</Text>
-              </View>
+              {/* Method 3: NFC */}
+              <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700' }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
+                <Text style={[styles.btnText, { color: '#000' }]>{nfcScanning ? 'Scanning NFC...' : '📱 Tap NFC Tag to Transfer'}</Text>
+              </TouchableOpacity>
 
-              {/* Confirm Pickup button — store owner has verified */}
+              {/* Confirm Pickup button */}
               <TouchableOpacity
                 style={styles.confirmBtn}
-                onPress={async () => {
+                onPress={() => {
                   Alert.alert(
                     'Confirm Pickup',
                     'Has the store owner verified your PIN, QR code, or NFC tap?',
@@ -183,7 +230,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                       { text: 'No', style: 'cancel' },
                       { text: 'Yes, Confirmed', onPress: async () => {
                         try {
-                          await client.put(`/orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
+                          await client.put(`/food-orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
                           Alert.alert('Pickup Confirmed', 'Head to the customer now!', [
                             { text: 'Go to Dropoff', onPress: () => navigation.replace('DeliveryDropoff', { orderId }) },
                           ]);
@@ -198,12 +245,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                 <Text style={styles.confirmBtnText}>✓ Confirm Pickup Verified</Text>
               </TouchableOpacity>
             </View>
-          )}
-
-          {arrived && !showPin && (
-            <TouchableOpacity style={styles.btn} onPress={() => setShowPin(true)}>
-              <Text style={styles.btnText}>Show Pickup PIN / QR</Text>
-            </TouchableOpacity>
           )}
         </View>
       </ScrollView>
@@ -241,10 +282,8 @@ const createStyles = (C) => StyleSheet.create({
   qrData: { color: '#1A1A1A', fontSize: 9, fontWeight: '600', textAlign: 'center' },
   qrDataSmall: { color: C.primary, fontWeight: '600' },
   qrAlt: { color: C.textSecondary, fontSize: 12, marginTop: 8, textAlign: 'center' },
-  nfcNote: { backgroundColor: C.background, borderRadius: 10, padding: 12, marginBottom: 12 },
   confirmBtn: { backgroundColor: '#34C759', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
   confirmBtnText: { color: '#FFF', fontWeight: '800', fontSize: 16 },
-  nfcNoteText: { color: C.textSecondary, fontSize: 12, textAlign: 'center' },
   btn: { backgroundColor: C.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
   btnText: { color: '#FFF', fontWeight: '700', fontSize: 16 },
 });
