@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "EazyRide+Haye",
+    "slug": "eazyride-super-app-final",
+    "version": "5.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0F0F"
+    },
+    "platforms": ["ios", "android"],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F0F0F"
+      },
+      "package": "com.eazyride.app.final"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "url": "https://u.expo.dev/093015a8-58e2-4b1b-989f-c92283729066"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "093015a8-58e2-4b1b-989f-c92283729066"
+      }
+    },
+    "newArchEnabled": false,
+    "plugins": [
+    ]
+  }
+}
