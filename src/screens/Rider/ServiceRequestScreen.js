@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import Toast from 'react-native-toast-message';
-import client from '../../api/client';
 
 const SERVICE_TYPES = ['Plumbing', 'Electrical', 'Cleaning', 'Repair', 'Moving', 'Painting', 'Other'];
 
@@ -23,7 +22,6 @@ export default function ServiceRequestScreen() {
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [phone, setPhone] = useState(user?.phone || '');
-  const [submitting, setSubmitting] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
@@ -36,29 +34,7 @@ export default function ServiceRequestScreen() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const payload = {
-        serviceType: serviceType.trim(),
-        description: description.trim(),
-        location: location.trim(),
-        phone: phone.trim(),
-      };
-      await client.post('/service-leads', payload);
-      Toast.show({ type: 'success', text1: 'Request Sent', text2: 'A provider will contact you shortly.' });
-      setServiceType('');
-      setDescription('');
-      setLocation('');
-      navigation.goBack();
-    } catch (e) {
-      Toast.show({
-        type: 'error',
-        text1: 'Submission Failed',
-        text2: e.response?.data?.message || e.message || 'Something went wrong. Please try again.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    Toast.show({ type: 'info', text1: 'Coming Soon', text2: 'Service requests will be available in a future update.' });
   };
 
   return (
@@ -133,15 +109,11 @@ export default function ServiceRequestScreen() {
       </View>
 
       <TouchableOpacity
-        style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
+        style={[styles.submitBtn]}
         onPress={submit}
-        disabled={submitting}
+       
       >
-        {submitting ? (
-          <ActivityIndicator size="small" color="#FFF" />
-        ) : (
-          <Text style={styles.submitText}>Submit Request</Text>
-        )}
+        <Text style={styles.submitText}>Submit Request</Text>
       </TouchableOpacity>
     </ScrollView>
   );
