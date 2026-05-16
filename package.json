@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "update:prod": "eas update --branch production --message 'New update'"
   },
   "dependencies": {
@@ -20,7 +20,7 @@
     "expo-constants": "~17.0.0",
     "expo-device": "~6.0.0",
     "expo-font": "~13.0.0",
-    "expo-image-picker": "^55.0.20",
+    "expo-image-picker": "^16.0.6",
     "expo-location": "~17.0.0",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",

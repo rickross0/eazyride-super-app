@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "EazyRide+Haye",
-    "slug": "eazyride-super-app-final",
+    "name": "Haye! EazyRide Services",
+    "slug": "haye-eazyride-services",
     "version": "5.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,22 +16,21 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F0F0F"
       },
-      "package": "com.eazyride.app.final"
+      "package": "com.eazyride.app"
     },
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
     "updates": {
       "enabled": true,
-      "url": "https://u.expo.dev/093015a8-58e2-4b1b-989f-c92283729066"
+      "url": "https://u.expo.dev/a8dd9f23-31da-4062-be0d-dec31fb6e028"
     },
     "extra": {
       "eas": {
-        "projectId": "093015a8-58e2-4b1b-989f-c92283729066"
+        "projectId": "a8dd9f23-31da-4062-be0d-dec31fb6e028"
       }
     },
     "newArchEnabled": false,
-    "plugins": [
-    ]
+    "plugins": []
   }
 }
