@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Image, Linking, Modal } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import client from '../../api/client';
 import * as ImagePicker from 'expo-image-picker';
@@ -41,7 +41,7 @@ export default function ProfileScreen({ navigation }) {
   const fetchProfile = async () => {
     try {
       const { data } = await client.get('/drivers/profile');
-      setProfile(data.profile);
+      setProfile(data?.data?.profile || data?.data || data?.profile || null);
       setCanDeliver(data.profile?.canDeliver || false);
     } catch (e) {
       console.error('Profile fetch error:', e);

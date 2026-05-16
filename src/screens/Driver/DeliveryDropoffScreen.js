@@ -24,7 +24,7 @@ export default function DeliveryDropoffScreen({ route, navigation }) {
     (async () => {
       try {
         const { data } = await client.get('/drivers/orders');
-        const found = (data.orders || []).find((o) => o.id === orderId);
+        const found = (data?.data || []).find((o) => o.id === orderId);
         if (found) setOrder(found);
       } catch (e) {
         console.error('Failed to load delivery:', e);

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl,
-  Alert,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROLE_CONFIG } from '../../config';
@@ -14,26 +13,30 @@ export default function DriverHomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const cfg = ROLE_CONFIG.DRIVER;
 
-  const fetchProfile = async () => {
+  const fetchRides = async () => {
     try {
-      const { data } = await api.get('/drivers/profile');
-      setRides(data?.rides || data || []);
+      const { data } = await api.get('/drivers/rides');
+      const list = data?.data || data || [];
+      setRides(list);
     } catch {}
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => { fetchRides(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProfile();
+    await fetchRides();
     setRefreshing(false);
   };
 
   const toggleOnline = () => setOnline(prev => !prev);
 
+  const today = new Date().toDateString();
+  const todayRides = rides.filter(r => r.completedAt && new Date(r.completedAt).toDateString() === today);
+
   const stats = [
-    { label: 'Today', value: rides.filter(r => r.status === 'completed').length, icon: '✅' },
-    { label: 'Earnings', value: `$${rides.reduce((s, r) => s + (r.fare || 0), 0).toFixed(2)}`, icon: '💰' },
+    { label: 'Today', value: todayRides.length, icon: '✅' },
+    { label: 'Earnings', value: `$${todayRides.reduce((s, r) => s + (r.driverEarnings || r.fare || 0), 0).toFixed(2)}`, icon: '💰' },
     { label: 'Rating', value: user?.rating?.toFixed(1) || '4.5', icon: '⭐' },
     { label: 'Rides', value: rides.length, icon: '🚗' },
   ];
@@ -65,21 +68,21 @@ export default function DriverHomeScreen({ navigation }) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Active Ride</Text>
-        {rides.filter(r => r.status === 'active' || r.status === 'in_progress').length === 0 ? (
+        {rides.filter(r => r.status === 'IN_PROGRESS' || r.status === 'DRIVER_ASSIGNED' || r.status === 'ACCEPTED').length === 0 ? (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>🛣️</Text>
             <Text style={styles.emptyText}>No active ride</Text>
             <Text style={styles.emptySubtext}>Go online to start receiving rides</Text>
           </View>
         ) : (
-          rides.filter(r => r.status === 'active' || r.status === 'in_progress').map(ride => (
+          rides.filter(r => r.status === 'IN_PROGRESS' || r.status === 'DRIVER_ASSIGNED' || r.status === 'ACCEPTED').map(ride => (
             <TouchableOpacity
-              key={ride._id}
+              key={ride.id}
               style={styles.rideCard}
-              onPress={() => navigation.navigate('ActiveRide', { rideId: ride._id, ride })}
+              onPress={() => navigation.navigate('ActiveRide', { rideId: ride.id, ride })}
             >
-              <Text style={styles.rideRoute}>{ride.pickup} → {ride.destination}</Text>
-              <Text style={styles.rideFare}>${ride.fare?.toFixed(2)}</Text>
+              <Text style={styles.rideRoute}>{ride.pickup?.address || ride.pickup} → {ride.destination?.address || ride.destination}</Text>
+              <Text style={styles.rideFare}>${(ride.fare || 0).toFixed(2)}</Text>
             </TouchableOpacity>
           ))
         )}
@@ -88,8 +91,8 @@ export default function DriverHomeScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Rides</Text>
         {rides.slice(0, 5).map(ride => (
-          <View key={ride._id} style={styles.rideItem}>
-            <Text style={styles.rideRouteSmall}>{ride.pickup} → {ride.destination}</Text>
+          <View key={ride.id} style={styles.rideItem}>
+            <Text style={styles.rideRouteSmall}>{ride.pickup?.address || ride.pickup} → {ride.destination?.address || ride.destination}</Text>
             <Text style={styles.rideStatus}>{ride.status}</Text>
           </View>
         ))}

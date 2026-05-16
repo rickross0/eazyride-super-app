@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Image 
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import client from '../../api/client';
+import { ROLE_COLORS, ROLE_LABELS } from '../../config';
 import Toast from 'react-native-toast-message';
 
 export default function RegisterScreen({ navigation, route }) {

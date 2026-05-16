@@ -35,8 +35,8 @@ export default function RideRequestsScreen({ navigation }) {
 
   const fetchRides = async () => {
     try {
-      const { data } = await client.get('/drivers/orders');
-      setRides(data.orders || data || []);
+      const { data } = await client.get('/drivers/rides');
+      setRides(data?.data || []);
     } catch (e) {
       console.error('Fetch rides error:', e);
     }
@@ -44,8 +44,8 @@ export default function RideRequestsScreen({ navigation }) {
 
   const fetchDeliveries = async () => {
     try {
-      const { data } = await client.get('/drivers/orders');
-      setDeliveries(data.orders || data || []);
+      const { data } = await client.get('/food-orders/driver/deliveries');
+      setDeliveries(data?.orders || data?.data || []);
     } catch (e) {
       console.error('Fetch deliveries error:', e);
     }
@@ -71,7 +71,7 @@ export default function RideRequestsScreen({ navigation }) {
     <TouchableOpacity
       style={styles.rideCard}
       onPress={() => {
-        if (ride.status === 'IN_PROGRESS' || ride.status === 'DRIVER_ASSIGNED') {
+        if (ride.status === 'IN_PROGRESS' || ride.status === 'DRIVER_ASSIGNED' || ride.status === 'ACCEPTED') {
           navigation.navigate('ActiveRide', { rideId: ride.id });
         }
       }}
@@ -101,7 +101,7 @@ export default function RideRequestsScreen({ navigation }) {
         <Text style={styles.rideFare}>${(order.totalAmount || 0).toFixed(2)}</Text>
       </View>
       <Text style={styles.rideRider}>
-        {order.restaurant?.name || 'Restaurant'}
+        {order.store?.name || 'Restaurant'}
       </Text>
       <Text style={styles.rideMeta}>
         {order.items?.length || 0} items  •  {formatDate(order.deliveredAt || order.pickedUpAt || order.createdAt)}
@@ -159,8 +159,8 @@ export default function RideRequestsScreen({ navigation }) {
 const createStyles = (C) => StyleSheet.create({
   container: { flex: 1, backgroundColor: C.background, padding: 20 },
   title: { fontSize: 28, fontWeight: '800', color: C.text, marginBottom: 16 },
-  tabRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  tab: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.border },
+  tabRow: { flexDirection: 'row', marginBottom: 16 },
+  tab: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center', backgroundColor: C.card, borderWidth: 1, borderColor: C.border, marginHorizontal: 4 },
   tabActive: { backgroundColor: C.primary, borderColor: C.primary },
   tabText: { color: C.textSecondary, fontWeight: '700', fontSize: 14 },
   tabTextActive: { color: '#FFF' },

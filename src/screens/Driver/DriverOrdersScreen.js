@@ -8,35 +8,36 @@ export default function DriverOrdersScreen({ navigation }) {
   const [rides, setRides] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchProfile = async () => {
+  const fetchRides = async () => {
     try {
-      const { data } = await api.get('/drivers/profile');
-      setRides(data?.rides || data || []);
+      const { data } = await api.get('/drivers/rides');
+      const list = data?.data || [];
+      setRides(list);
     } catch {}
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => { fetchRides(); }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchProfile();
+    await fetchRides();
     setRefreshing(false);
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('ActiveRide', { rideId: item._id, ride: item })}
+      onPress={() => navigation.navigate('ActiveRide', { rideId: item.id, ride: item })}
     >
       <View style={styles.cardHeader}>
-        <Text style={styles.route}>{item.pickup} → {item.destination}</Text>
-        <Text style={[styles.status, { color: item.status === 'completed' ? '#4CAF50' : '#FF9800' }]}>
+        <Text style={styles.route}>{item.pickup?.address || item.pickup} → {item.destination?.address || item.destination}</Text>
+        <Text style={[styles.status, { color: item.status === 'COMPLETED' ? '#4CAF50' : '#FF9800' }]}>
           {item.status}
         </Text>
       </View>
       <View style={styles.cardBody}>
-        <Text style={styles.fare}>${item.fare?.toFixed(2) || '0.00'}</Text>
-        <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+        <Text style={styles.fare}>${(item.fare || 0).toFixed(2)}</Text>
+        <Text style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -46,7 +47,7 @@ export default function DriverOrdersScreen({ navigation }) {
       <Text style={styles.title}>My Rides</Text>
       <FlatList
         data={rides}
-        keyExtractor={item => item._id}
+        keyExtractor={item => item.id}
         renderItem={renderItem}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={

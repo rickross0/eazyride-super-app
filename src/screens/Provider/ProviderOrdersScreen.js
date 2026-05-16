@@ -26,7 +26,7 @@ export default function ProviderOrdersScreen() {
     setError(null);
     try {
       const { data } = await client.get('/orders/my');
-      setOrders(data.orders || data || []);
+      setOrders(data?.data?.orders || data?.data || data?.orders || []);
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to load orders';
       setError(msg);

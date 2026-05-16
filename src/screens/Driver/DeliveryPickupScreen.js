@@ -30,7 +30,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
   const fetchOrder = useCallback(async () => {
     try {
       const { data } = await client.get('/food-orders/driver/deliveries');
-      const found = (data.orders || []).find((o) => o.id === orderId);
+      const found = (data?.data || []).find((o) => o.id === orderId);
       if (found) {
         setOrder(found);
         if (found.status === 'PICKUP_CONFIRMED') {

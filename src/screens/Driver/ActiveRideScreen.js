@@ -24,7 +24,7 @@ export default function ActiveRideScreen({ route, navigation }) {
   useEffect(() => {
     (async () => {
       const { data } = await client.get(`/rides/${rideId}`);
-      setRide(data.ride);
+      setRide(data?.data?.ride || data?.ride || null);
       if (data.ride?.pickupLat && data.ride?.dropoffLat) {
         await fetchRoute(data.ride);
       }

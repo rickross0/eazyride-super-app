@@ -14,7 +14,7 @@ export default function CarDetailScreen({ route, navigation }) {
     (async () => {
       try {
         const { data } = await client.get(`/car-rental/${carId}`);
-        setCar(data.car);
+        setCar(data?.data?.car || data?.car || null);
       } catch (e) { console.error('Fetch car error:', e); }
     })();
   }, [carId]);

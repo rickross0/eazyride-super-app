@@ -13,7 +13,7 @@ export default function StoreOwnerHomeScreen({ navigation }) {
   const fetchStats = async () => {
     try {
       const { data } = await api.get('/orders/store');
-      const orders = data?.orders || data || [];
+      const orders = data?.orders || data?.data?.orders || [];
       const revenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
       setStats({ orders: orders.length, revenue, products: 0, rating: 0 });
     } catch {}

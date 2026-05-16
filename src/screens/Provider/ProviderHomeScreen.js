@@ -13,7 +13,7 @@ export default function ProviderHomeScreen({ navigation }) {
   const fetchStats = async () => {
     try {
       const { data } = await api.get('/providers/my/profile');
-      setStats(data.profile || data || { requests: 0, completed: 0, earnings: 0, rating: 0 });
+      setStats(data?.data?.profile || data?.data || data?.profile || { requests: 0, completed: 0, earnings: 0, rating: 0 });
     } catch {}
   };
 

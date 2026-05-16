@@ -11,7 +11,7 @@ export default function StoreOrdersScreen() {
   const fetchOrders = useCallback(async () => {
     try {
       const { data } = await api.get('/food-orders/store');
-      const list = data?.orders || data?.data || data || [];
+      const list = data?.orders || data?.data?.orders || data?.data || [];
       setOrders(list);
     } catch (e) {
       console.error('Failed to fetch store orders:', e);

@@ -28,7 +28,7 @@ export default function ProviderServicesScreen() {
     setError(null);
     try {
       const { data } = await client.get('/providers/my/profile');
-      setProfile(data.profile || data || null);
+      setProfile(data?.data?.profile || data?.data || data?.profile || null);
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to load provider profile';
       setError(msg);

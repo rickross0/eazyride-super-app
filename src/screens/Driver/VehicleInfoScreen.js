@@ -25,7 +25,7 @@ export default function VehicleInfoScreen({ navigation }) {
     (async () => {
       try {
         const { data } = await client.get('/drivers/profile');
-        const p = data.profile;
+        const p = data?.data?.profile || data?.data || data?.profile || null;
         setProfile(p);
         setVehicleType(p.vehicleType || 'BAJAJ');
         setPlateNumber(p.plateNumber || '');

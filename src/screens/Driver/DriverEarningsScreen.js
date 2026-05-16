@@ -11,7 +11,8 @@ export default function DriverEarningsScreen() {
     const fetchEarnings = async () => {
       try {
         const { data } = await api.get('/drivers/earnings');
-        setEarnings(data || { today: 0, week: 0, month: 0, total: 0 });
+        const result = data?.data || data || { today: 0, week: 0, month: 0, total: 0 };
+        setEarnings(result);
       } catch {}
     };
     fetchEarnings();

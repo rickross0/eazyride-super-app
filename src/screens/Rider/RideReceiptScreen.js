@@ -14,7 +14,7 @@ export default function RideReceiptScreen({ route, navigation }) {
     (async () => {
       try {
         const { data } = await client.get(`/rides/${rideId}`);
-        setRide(data.ride);
+        setRide(data?.data?.ride || data?.ride || null);
       } catch {}
     })();
   }, [rideId]);
