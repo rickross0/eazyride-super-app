@@ -2,7 +2,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
-import MapView, { Marker, Polyline } from '../../components/MapPlaceholder';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';

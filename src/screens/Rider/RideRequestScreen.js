@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from '../../components/MapPlaceholder';
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useTheme } from '../../contexts/ThemeContext';
 import client from '../../api/client';

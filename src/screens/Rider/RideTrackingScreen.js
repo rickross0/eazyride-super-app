@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, Share, Animated } from 'react-native';
-import MapView, { Marker, Polyline } from '../../components/MapPlaceholder';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
