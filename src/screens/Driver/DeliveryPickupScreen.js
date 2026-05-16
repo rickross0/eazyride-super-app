@@ -19,7 +19,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
   const [arrived, setArrived] = useState(false);
-  const [showPin, setShowPin] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [nfcScanning, setNfcScanning] = useState(false);
   const mapRef = useRef(null);
@@ -71,36 +70,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
     }
   }, [order, driverLocation]);
 
-  const verifyArrival = async () => {
-    setVerifying(true);
-    try {
-      const { data } = await client.put(`/food-orders/${orderId}/verify-arrival`, {});
-      if (data.status === 'DRIVER_ARRIVED') {
-        setArrived(true);
-        setShowPin(true);
-        Alert.alert('Arrival Verified', 'You are at the restaurant. Show your pickup PIN or tap NFC to confirm.');
-      } else {
-        Alert.alert('Not Close Enough', `GPS says you are ${data.distanceMeters}m away. Move closer or use NFC.`);
-      }
-    } catch (e) {
-      const msg = e.response?.data?.error || 'Failed to verify arrival';
-      if (msg.includes('distance') || msg.includes('close') || msg.includes('Not Close')) {
-        Alert.alert(
-          'Not Close Enough',
-          'You are too far from the restaurant. Use NFC to verify pickup.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Verify with NFC', onPress: () => verifyNfcPickup() },
-          ]
-        );
-      } else {
-        Alert.alert('Error', msg);
-      }
-    } finally {
-      setVerifying(false);
-    }
-  };
-
   const verifyNfcPickup = async () => {
     setNfcScanning(true);
     try {
@@ -120,7 +89,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
 
       if (data.status === 'DRIVER_ARRIVED') {
         setArrived(true);
-        setShowPin(true);
         Alert.alert('NFC Pickup Confirmed', 'Restaurant verified via NFC tap.');
       } else {
         Alert.alert('Verification Failed', data.error || 'Could not verify NFC pickup.');
@@ -139,7 +107,6 @@ export default function DeliveryPickupScreen({ route, navigation }) {
 
   const restaurantLat = order.restaurant?.latitude;
   const restaurantLng = order.restaurant?.longitude;
-  const qrData = order.pickupPin ? `eazyride://pickup-verify?orderId=${orderId}&pin=${order.pickupPin}` : '';
 
   return (
     <View style={styles.container}>
@@ -180,55 +147,26 @@ export default function DeliveryPickupScreen({ route, navigation }) {
 
           {!arrived && (
             <View style={{ marginTop: 8 }}>
-              <TouchableOpacity style={styles.btn} onPress={verifyArrival} disabled={verifying}>
-                <Text style={styles.btnText}>{verifying ? 'Verifying GPS...' : '📍 Verify Arrival (GPS)'}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700', marginTop: 10 }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
-                <Text style={[styles.btnText, { color: '#000' }]>{nfcScanning ? 'Hold phone near NFC tag...' : '📱 Verify Pickup (NFC)'}</Text>
+              <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700' }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
+                <Text style={[styles.btnText, { color: '#000' }]}>{nfcScanning ? 'Hold phone near NFC tag...' : '📱 Verify Pickup (NFC)'}</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {showPin && (
+          {arrived && (
             <View style={styles.verificationSection}>
-              <Text style={styles.verifyTitle}>🔐 Pickup Verification</Text>
-              <Text style={styles.verifySubtitle}>Show one of these to the store owner:</Text>
+              <Text style={styles.verifyTitle}>✅ Pickup Verified</Text>
+              <Text style={styles.verifySubtitle}>NFC confirmed. Tap below to mark pickup complete.</Text>
 
-              {/* Method 1: PIN */}
-              <View style={styles.pinBox}>
-                <Text style={styles.pinLabel}>4-Digit PIN</Text>
-                <Text style={styles.pinValue}>{order.pickupPin}</Text>
-                <Text style={styles.pinHint}>Read this number aloud to the store owner</Text>
-              </View>
-
-              {/* Method 2: QR Code */}
-              {qrData ? (
-                <View style={styles.qrBox}>
-                  <Text style={styles.qrLabel}>QR Code</Text>
-                  <Text style={styles.qrHint}>Let the store owner scan this with their app</Text>
-                  <View style={styles.qrPlaceholder}>
-                    <Text style={styles.qrData}>{qrData}</Text>
-                  </View>
-                  <Text style={styles.qrAlt}>Or share: <Text style={styles.qrDataSmall}>{order.pickupPin}</Text></Text>
-                </View>
-              ) : null}
-
-              {/* Method 3: NFC */}
-              <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700' }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
-                <Text style={[styles.btnText, { color: '#000' }]>{nfcScanning ? 'Scanning NFC...' : '📱 Tap NFC Tag to Transfer'}</Text>
-              </TouchableOpacity>
-
-              {/* Confirm Pickup button */}
               <TouchableOpacity
                 style={styles.confirmBtn}
                 onPress={() => {
                   Alert.alert(
                     'Confirm Pickup',
-                    'Has the store owner verified your PIN, QR code, or NFC tap?',
+                    'Mark this order as picked up?',
                     [
                       { text: 'No', style: 'cancel' },
-                      { text: 'Yes, Confirmed', onPress: async () => {
+                      { text: 'Yes, Picked Up', onPress: async () => {
                         try {
                           await client.put(`/food-orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
                           Alert.alert('Pickup Confirmed', 'Head to the customer now!', [
@@ -242,7 +180,7 @@ export default function DeliveryPickupScreen({ route, navigation }) {
                   );
                 }}
               >
-                <Text style={styles.confirmBtnText}>✓ Confirm Pickup Verified</Text>
+                <Text style={styles.confirmBtnText}>✓ Confirm Pickup Complete</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -271,17 +209,6 @@ const createStyles = (C) => StyleSheet.create({
   verificationSection: { marginTop: 8 },
   verifyTitle: { color: C.text, fontSize: 18, fontWeight: '700', marginBottom: 4 },
   verifySubtitle: { color: C.textSecondary, fontSize: 13, marginBottom: 16 },
-  pinBox: { backgroundColor: C.background, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12, borderWidth: 2, borderColor: C.primary },
-  pinLabel: { color: C.textSecondary, fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1.5 },
-  pinValue: { color: C.primary, fontSize: 40, fontWeight: '900', letterSpacing: 10, marginVertical: 4 },
-  pinHint: { color: C.textSecondary, fontSize: 12, textAlign: 'center' },
-  qrBox: { backgroundColor: C.background, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 },
-  qrLabel: { color: C.text, fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  qrHint: { color: C.textSecondary, fontSize: 12, marginBottom: 12 },
-  qrPlaceholder: { width: 180, height: 180, backgroundColor: '#FFFFFF', borderRadius: 8, justifyContent: 'center', alignItems: 'center', padding: 8 },
-  qrData: { color: '#1A1A1A', fontSize: 9, fontWeight: '600', textAlign: 'center' },
-  qrDataSmall: { color: C.primary, fontWeight: '600' },
-  qrAlt: { color: C.textSecondary, fontSize: 12, marginTop: 8, textAlign: 'center' },
   confirmBtn: { backgroundColor: '#34C759', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
   confirmBtnText: { color: '#FFF', fontWeight: '800', fontSize: 16 },
   btn: { backgroundColor: C.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 8 },
