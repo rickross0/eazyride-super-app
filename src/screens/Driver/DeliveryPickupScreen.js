@@ -1,6 +1,6 @@
 import { useTheme } from '../../contexts/ThemeContext';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -17,29 +17,33 @@ export default function DeliveryPickupScreen({ route, navigation }) {
   const [order, setOrder] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [verifying, setVerifying] = useState(false);
-  const [arrived, setArrived] = useState(false);
   const [driverLocation, setDriverLocation] = useState(null);
   const [nfcScanning, setNfcScanning] = useState(false);
   const mapRef = useRef(null);
+  const pollRef = useRef(null);
 
   useEffect(() => {
     NfcManager.start().catch(() => {});
     return () => { NfcManager.cancelTechnologyRequest().catch(() => {}); };
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await client.get('/drivers/orders');
-        const found = (data.orders || []).find((o) => o.id === orderId);
-        if (found) setOrder(found);
-      } catch (e) {
-        console.error('Failed to load delivery:', e);
-      } finally {
-        setLoading(false);
+  const fetchOrder = useCallback(async () => {
+    try {
+      const { data } = await client.get('/food-orders/driver/deliveries');
+      const found = (data.orders || []).find((o) => o.id === orderId);
+      if (found) {
+        setOrder(found);
+        if (found.status === 'PICKUP_CONFIRMED') {
+          clearInterval(pollRef.current);
+        }
       }
-    })();
+    } catch (e) {
+      console.error('Failed to load delivery:', e);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchOrder().finally(() => setLoading(false));
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -49,7 +53,11 @@ export default function DeliveryPickupScreen({ route, navigation }) {
         (loc) => setDriverLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
       );
     })();
-  }, [orderId]);
+
+    // Poll every 5s for status updates
+    pollRef.current = setInterval(fetchOrder, 5000);
+    return () => clearInterval(pollRef.current);
+  }, [fetchOrder]);
 
   const fetchRoute = async (originLat, originLng, destLat, destLng) => {
     try {
@@ -88,8 +96,8 @@ export default function DeliveryPickupScreen({ route, navigation }) {
       });
 
       if (data.status === 'DRIVER_ARRIVED') {
-        setArrived(true);
-        Alert.alert('NFC Pickup Confirmed', 'Restaurant verified via NFC tap.');
+        await fetchOrder();
+        Alert.alert('NFC Pickup Confirmed', 'Restaurant verified via NFC tap. Show your PIN to the restaurant.');
       } else {
         Alert.alert('Verification Failed', data.error || 'Could not verify NFC pickup.');
       }
@@ -104,6 +112,9 @@ export default function DeliveryPickupScreen({ route, navigation }) {
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>;
   if (!order) return <View style={styles.center}><Text style={{ color: COLORS.text }}>Delivery not found</Text></View>;
+
+  const isDriverArrived = order.status === 'DRIVER_ARRIVED';
+  const isPickupConfirmed = order.status === 'PICKUP_CONFIRMED';
 
   const restaurantLat = order.restaurant?.latitude;
   const restaurantLng = order.restaurant?.longitude;
@@ -145,7 +156,8 @@ export default function DeliveryPickupScreen({ route, navigation }) {
             </View>
           )}
 
-          {!arrived && (
+          {/* NFC Verification Button — shown before arrival */}
+          {!isDriverArrived && !isPickupConfirmed && (
             <View style={{ marginTop: 8 }}>
               <TouchableOpacity style={[styles.btn, { backgroundColor: '#FFD700' }]} onPress={verifyNfcPickup} disabled={nfcScanning}>
                 <Text style={[styles.btnText, { color: '#000' }]}>{nfcScanning ? 'Hold phone near NFC tag...' : '📱 Verify Pickup (NFC)'}</Text>
@@ -153,34 +165,29 @@ export default function DeliveryPickupScreen({ route, navigation }) {
             </View>
           )}
 
-          {arrived && (
-            <View style={styles.verificationSection}>
-              <Text style={styles.verifyTitle}>✅ Pickup Verified</Text>
-              <Text style={styles.verifySubtitle}>NFC confirmed. Tap below to mark pickup complete.</Text>
+          {/* PIN Display — shown after NFC arrival, waiting for restaurant */}
+          {isDriverArrived && order.pickupPin && (
+            <View style={styles.pinSection}>
+              <Text style={styles.pinLabel}>SHOW THIS PIN TO RESTAURANT</Text>
+              <View style={styles.pinBox}>
+                <Text style={styles.pinDigits}>{order.pickupPin}</Text>
+              </View>
+              <Text style={styles.pinHint}>Wait for the restaurant to enter this PIN to confirm pickup.</Text>
+              <ActivityIndicator style={{ marginTop: 12 }} color={COLORS.primary} />
+              <Text style={styles.pollingText}>Waiting for restaurant confirmation...</Text>
+            </View>
+          )}
 
+          {/* Proceed to Dropoff — shown after pickup confirmed */}
+          {isPickupConfirmed && (
+            <View style={styles.verificationSection}>
+              <Text style={styles.verifyTitle}>✅ Pickup Confirmed</Text>
+              <Text style={styles.verifySubtitle}>Restaurant has verified the PIN. Head to the customer now!</Text>
               <TouchableOpacity
                 style={styles.confirmBtn}
-                onPress={() => {
-                  Alert.alert(
-                    'Confirm Pickup',
-                    'Mark this order as picked up?',
-                    [
-                      { text: 'No', style: 'cancel' },
-                      { text: 'Yes, Picked Up', onPress: async () => {
-                        try {
-                          await client.put(`/food-orders/${orderId}/status`, { status: 'PICKUP_CONFIRMED' });
-                          Alert.alert('Pickup Confirmed', 'Head to the customer now!', [
-                            { text: 'Go to Dropoff', onPress: () => navigation.replace('DeliveryDropoff', { orderId }) },
-                          ]);
-                        } catch (e) {
-                          Alert.alert('Error', e.response?.data?.error || 'Failed to confirm pickup');
-                        }
-                      }},
-                    ]
-                  );
-                }}
+                onPress={() => navigation.replace('DeliveryDropoff', { orderId })}
               >
-                <Text style={styles.confirmBtnText}>✓ Confirm Pickup Complete</Text>
+                <Text style={styles.confirmBtnText}>Go to Dropoff →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -206,6 +213,12 @@ const createStyles = (C) => StyleSheet.create({
   itemsSection: { backgroundColor: C.background, borderRadius: 10, padding: 12, marginBottom: 12 },
   itemsTitle: { color: C.text, fontSize: 14, fontWeight: '600', marginBottom: 6 },
   itemText: { color: C.textSecondary, fontSize: 13, marginBottom: 2 },
+  pinSection: { marginTop: 12, backgroundColor: '#1a1a1a', borderRadius: 16, padding: 20, alignItems: 'center' },
+  pinLabel: { color: '#FFD700', fontSize: 13, fontWeight: '800', letterSpacing: 1, marginBottom: 10 },
+  pinBox: { backgroundColor: '#000', borderWidth: 2, borderColor: '#FFD700', borderRadius: 12, paddingVertical: 16, paddingHorizontal: 32, marginBottom: 10 },
+  pinDigits: { color: '#FFD700', fontSize: 42, fontWeight: '900', letterSpacing: 8 },
+  pinHint: { color: '#AAA', fontSize: 13, textAlign: 'center' },
+  pollingText: { color: C.textSecondary, fontSize: 12, marginTop: 6 },
   verificationSection: { marginTop: 8 },
   verifyTitle: { color: C.text, fontSize: 18, fontWeight: '700', marginBottom: 4 },
   verifySubtitle: { color: C.textSecondary, fontSize: 13, marginBottom: 16 },
